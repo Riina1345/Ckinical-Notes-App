@@ -18,12 +18,16 @@ client = OpenAI(api_key=api_key)
 st.set_page_config(page_title="Clinical Notes AI", layout="centered")
 st.title("🧠 Clinical Notes AI")
 
-# 🧾 Format picker: SOAP, DAP, or both
-note_formats = st.multiselect(
-    "Select summary format(s) to generate:",
-    options=["SOAP", "DAP"],
-    default=["SOAP"]
-)
+# ✅ Checkboxes for format selection
+st.markdown("### Choose note format(s) to generate:")
+generate_soap = st.checkbox("SOAP Note", value=True)
+generate_dap = st.checkbox("DAP Note", value=False)
+
+selected_formats = []
+if generate_soap:
+    selected_formats.append("SOAP")
+if generate_dap:
+    selected_formats.append("DAP")
 
 # 📝 Session input
 session_input = st.text_area("Enter session transcript or notes:", height=250)
@@ -32,11 +36,11 @@ session_input = st.text_area("Enter session transcript or notes:", height=250)
 if st.button("Generate Summary"):
     if not session_input.strip():
         st.warning("Please enter some session text.")
-    elif not note_formats:
-        st.warning("Please select at least one format.")
+    elif not selected_formats:
+        st.warning("Please select at least one note format.")
     else:
         with st.spinner("Generating summary..."):
-            for note_format in note_formats:
+            for note_format in selected_formats:
                 format_instruction = (
                     "Format as SOAP (Subjective, Objective, Assessment, Plan)."
                     if note_format == "SOAP"
