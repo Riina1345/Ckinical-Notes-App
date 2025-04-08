@@ -3,10 +3,10 @@ from openai import OpenAI
 import os
 from filters import detect_non_clinical_terms
 
-# 🔐 Read OpenAI API key from Streamlit Secrets
+# 🔐 Load OpenAI API key from Streamlit Secrets
 api_key = os.getenv("OPENAI_API_KEY")
 
-# 🚨 Fail-safe: Stop the app if key is missing
+# 🚨 Stop the app if the key is missing
 if not api_key:
     st.error("❌ OPENAI_API_KEY not found. Please set it in Streamlit Cloud > Settings > Secrets.")
     st.stop()
@@ -16,26 +16,39 @@ client = OpenAI(api_key=api_key)
 
 # 🌐 Page settings
 st.set_page_config(page_title="Clinical Notes AI", layout="centered")
-st.title("🧠 Clinical Notes AI (Demo)")
+st.title("🧠 Clinical Notes AI")
+
+# 🧾 Summary format selection
+note_format = st.selectbox("Choose summary format:", ["SOAP", "DAP"])
 
 # 📝 User input
 session_input = st.text_area("Enter session transcript or notes:", height=250)
 
-# 🚀 Button: Trigger generation
-if st.button("Generate SOAP Summary"):
+# 🚀 Generate button
+if st.button("Generate Summary"):
     if not session_input.strip():
         st.warning("Please enter some session text.")
     else:
         with st.spinner("Generating summary..."):
-            # 🧠 System prompt
+
+            # 🧠 Prompt template based on format
+            if note_format == "SOAP":
+                format_instructions = (
+                    "Format the response in SOAP format (Subjective, Objective, Assessment, Plan)."
+                )
+            else:  # DAP
+                format_instructions = (
+                    "Format the response in DAP format (Data, Assessment, Plan)."
+                )
+
             prompt = f"""
-            You are a licensed clinician generating a SOAP note for insurance documentation.
+            You are a licensed clinician generating a {note_format} note for insurance documentation.
 
             Requirements:
             - Use clinical, professional language.
-            - Include medically recognized diagnoses (DSM-5 / ICD-10).
-            - Avoid non-clinical terms like 'inner child', 'trauma bonding', etc.
-            - Format as SOAP (Subjective, Objective, Assessment, Plan).
+            - Include only medically recognized diagnoses (DSM-5 / ICD-10).
+            - Avoid non-clinical or informal terms like 'inner child', 'chakra', etc.
+            - {format_instructions}
 
             Session Text:
             {session_input}
@@ -43,7 +56,7 @@ if st.button("Generate SOAP Summary"):
 
             try:
                 response = client.chat.completions.create(
-                    model="gpt-3.5-turbo",  # Change to gpt-4 if you have access
+                    model="gpt-3.5-turbo",
                     messages=[
                         {"role": "system", "content": "You are a compliant clinical documentation assistant."},
                         {"role": "user", "content": prompt}
@@ -53,8 +66,7 @@ if st.button("Generate SOAP Summary"):
                 summary = response.choices[0].message.content
                 flags = detect_non_clinical_terms(summary)
 
-                # 📄 Output
-                st.subheader("📝 SOAP Summary")
+                st.subheader(f"📝 {note_format} Summary")
                 st.code(summary, language="markdown")
 
                 if flags:
