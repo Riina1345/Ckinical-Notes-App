@@ -3,7 +3,7 @@
 import openai
 import os
 import streamlit as st
-from streamlit_webrtc import webrtc_streamer, WebRtcMode, ClientSettings
+from streamlit_webrtc import webrtc_streamer, WebRtcMode
 import tempfile
 import asyncio
 from pydub import AudioSegment
