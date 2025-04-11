@@ -47,15 +47,14 @@ if input_method == "Upload Audio":
 # --- Continuous Dictation ---
 if input_method == "Live Dictation":
     RTC_CONFIGURATION = {"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
-    ctx = webrtc_streamer(
-        key="live-dictation",
-        mode=WebRtcMode.SENDRECV,
-        in_audio=True,
-        out_audio=False,
-        rtc_configuration=RTC_CONFIGURATION,
-        media_stream_constraints={"audio": True, "video": False},
-        async_processing=True,
-    )
+   ctx = webrtc_streamer(
+    key="live-dictation",
+    mode=WebRtcMode.SENDRECV,
+    rtc_configuration=RTC_CONFIGURATION,
+    media_stream_constraints={"audio": True, "video": False},
+    async_processing=True,
+)
+
 
     if "live_text" not in st.session_state:
         st.session_state["live_text"] = ""
